@@ -22,26 +22,60 @@ class PhpHandler implements HandlerInterface {
 
     /**
      * {@inheritdoc}
-     * @link http://ca2.php.net/manual/en/function.session-decode.php#108037 Code from this comment on php.net
-     * @throws \UnexpectedValueException If there is a problem parsing the data
+     * @throws UnexpectedValueException If there is a problem parsing the data
      */
-    public function unserialize($raw) {
+    public function unserialize($raw)
+    {
         $returnData = array();
         $offset     = 0;
+        $len        = strlen($raw);
 
-        while ($offset < strlen($raw)) {
-            if (!strstr(substr($raw, $offset), "|")) {
-                throw new \UnexpectedValueException("invalid data, remaining: " . substr($raw, $offset));
+        while ($offset < $len) {
+            $pos = strpos($raw, "|", $offset);
+            if ($pos === false) {
+                throw new \UnexpectedValueException("Invalid data, '|' not found at offset $offset");
             }
 
-            $pos     = strpos($raw, "|", $offset);
-            $num     = $pos - $offset;
-            $varname = substr($raw, $offset, $num);
-            $offset += $num + 1;
-            $data    = unserialize(substr($raw, $offset));
+            $varname = substr($raw, $offset, $pos - $offset);
+            $offset  = $pos + 1;
+
+            // Attempt to find the end of the serialized data
+            $dataOffset = $offset;
+            $braceCount = 0;
+            $inString   = false;
+
+            for (; $dataOffset < $len; $dataOffset++) {
+                $char = $raw[$dataOffset];
+
+                if ($char === '"' && $raw[$dataOffset - 1] !== '\\') {
+                    $inString = !$inString;
+                }
+
+                if (!$inString) {
+                    if ($char === '{') {
+                        $braceCount++;
+                    } elseif ($char === '}') {
+                        $braceCount--;
+                        if ($braceCount === 0) {
+                            $dataOffset++;
+                            break;
+                        }
+                    } elseif ($char === ';' && $braceCount === 0) {
+                        $dataOffset++;
+                        break;
+                    }
+                }
+            }
+
+            $serializedData = substr($raw, $offset, $dataOffset - $offset);
+            $data = unserialize($serializedData);
+
+            if ($data === false && $serializedData !== 'b:0;') {
+                throw new \UnexpectedValueException("Unable to unserialize data for variable '$varname'");
+            }
 
             $returnData[$varname] = $data;
-            $offset += strlen(serialize($data));
+            $offset = $dataOffset;
         }
 
         return $returnData;
