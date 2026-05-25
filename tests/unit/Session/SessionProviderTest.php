@@ -66,7 +66,9 @@ class SessionProviderTest extends AbstractMessageComponentTestCase {
     public function testToClassCase($in, $out) {
         $ref = new \ReflectionClass('Ratchet\\Session\\SessionProvider');
         $method = $ref->getMethod('toClassCase');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         $component = new SessionProvider($this->getMockBuilder($this->getComponentClassString())->getMock(), $this->getMockBuilder('SessionHandlerInterface')->getMock());
         $this->assertEquals($out, $method->invokeArgs($component, array($in)));

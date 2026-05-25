@@ -23,7 +23,9 @@ class AppTest extends TestCase {
         $app = new App();
 
         $ref = new \ReflectionProperty($app, '_server');
-        $ref->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $ref->setAccessible(true);
+        }
         $server = $ref->getValue($app);
         assert($server instanceof IoServer);
 

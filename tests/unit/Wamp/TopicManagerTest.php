@@ -34,7 +34,9 @@ class TopicManagerTest extends TestCase {
     public function testGetTopicReturnsTopicObject() {
         $class  = new \ReflectionClass('Ratchet\Wamp\TopicManager');
         $method = $class->getMethod('getTopic');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         $topic = $method->invokeArgs($this->mngr, array('The Topic'));
 
@@ -46,7 +48,9 @@ class TopicManagerTest extends TestCase {
 
         $class  = new \ReflectionClass('Ratchet\Wamp\TopicManager');
         $method = $class->getMethod('getTopic');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         $topic = $method->invokeArgs($this->mngr, array($name));
 
@@ -56,7 +60,9 @@ class TopicManagerTest extends TestCase {
     public function testGetTopicReturnsSameObject() {
         $class  = new \ReflectionClass('Ratchet\Wamp\TopicManager');
         $method = $class->getMethod('getTopic');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         $topic = $method->invokeArgs($this->mngr, array('No copy'));
         $again = $method->invokeArgs($this->mngr, array('No copy'));
@@ -95,13 +101,15 @@ class TopicManagerTest extends TestCase {
 
         $class  = new \ReflectionClass('Ratchet\Wamp\TopicManager');
         $method = $class->getMethod('getTopic');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         $topic = $method->invokeArgs($this->mngr, array($name));
 
         $this->mngr->onSubscribe($this->conn, $name);
 
-        $this->assertTrue($this->conn->WAMP->subscriptions->contains($topic));
+        $this->assertTrue($this->conn->WAMP->subscriptions->offsetExists($topic));
     }
 
     public function testDoubleSubscriptionFiresOnce() {
@@ -135,14 +143,16 @@ class TopicManagerTest extends TestCase {
 
         $class  = new \ReflectionClass('Ratchet\Wamp\TopicManager');
         $method = $class->getMethod('getTopic');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         $topic = $method->invokeArgs($this->mngr, array($name));
 
         $this->mngr->onSubscribe($this->conn, $name);
         $this->mngr->onUnsubscribe($this->conn, $name);
 
-        $this->assertFalse($this->conn->WAMP->subscriptions->contains($topic));
+        $this->assertFalse($this->conn->WAMP->subscriptions->offsetExists($topic));
     }
 
     public function testOnPublishBubbles() {
@@ -167,10 +177,14 @@ class TopicManagerTest extends TestCase {
     protected function topicProvider($name) {
         $class  = new \ReflectionClass('Ratchet\Wamp\TopicManager');
         $method = $class->getMethod('getTopic');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         $attribute = $class->getProperty('topicLookup');
-        $attribute->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $attribute->setAccessible(true);
+        }
 
         $topic = $method->invokeArgs($this->mngr, array($name));
 
