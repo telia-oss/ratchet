@@ -3,7 +3,7 @@ namespace Ratchet\Session\Storage\Proxy;
 use Symfony\Component\HttpFoundation\Session\Storage\Proxy\SessionHandlerProxy;
 
 /**
- * [internal] VirtualProxy for Symfony 7 on PHP 8.2+ using native types like `setId(string $id): void`
+ * [internal] VirtualProxy for Symfony 7 on PHP 8.2+ and Symfony 8 on PHP 8.4+ using native types like `setId(string $id): void`
  *
  * @internal used internally only, should not be referenced directly
  * @see VirtualProxy
