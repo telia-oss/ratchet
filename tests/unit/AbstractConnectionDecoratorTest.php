@@ -90,7 +90,9 @@ class AbstractConnectionDecoratorTest extends TestCase {
     public function testGetConnection() {
         $class  = new \ReflectionClass('Ratchet\\AbstractConnectionDecorator');
         $method = $class->getMethod('getConnection');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         $conn = $method->invokeArgs($this->l1, array());
 
@@ -100,7 +102,9 @@ class AbstractConnectionDecoratorTest extends TestCase {
     public function testGetConnectionLevel2() {
         $class  = new \ReflectionClass('Ratchet\\AbstractConnectionDecorator');
         $method = $class->getMethod('getConnection');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         $conn = $method->invokeArgs($this->l2, array());
 

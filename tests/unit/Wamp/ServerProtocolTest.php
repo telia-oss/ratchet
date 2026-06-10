@@ -190,7 +190,9 @@ class ServerProtocolTest extends TestCase {
 
         $class  = new \ReflectionClass('Ratchet\\Wamp\\WampConnection');
         $method = $class->getMethod('getConnection');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         $check = $method->invokeArgs($this->_app->last['onClose'][0], array());
 
@@ -207,7 +209,9 @@ class ServerProtocolTest extends TestCase {
 
         $class  = new \ReflectionClass('Ratchet\\Wamp\\WampConnection');
         $method = $class->getMethod('getConnection');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         $check = $method->invokeArgs($this->_app->last['onError'][0], array());
 
