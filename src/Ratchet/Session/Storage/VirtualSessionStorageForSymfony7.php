@@ -6,7 +6,7 @@ use Ratchet\Session\Storage\Proxy\VirtualProxy;
 use Ratchet\Session\Serialize\HandlerInterface;
 
 /**
- * [internal] VirtualSessionStorage for Symfony 7 on PHP 8.2+ using native types like `save(): void`
+ * [internal] VirtualSessionStorage for Symfony 7 on PHP 8.2+ and Symfony 8 on PHP 8.4+ using native types like `save(): void`
  *
  * @internal used internally only, should not be referenced directly
  * @see VirtualSessionStorage

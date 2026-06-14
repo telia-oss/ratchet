@@ -5,7 +5,7 @@ use Ratchet\Session\Storage\Proxy\VirtualProxy;
 use Ratchet\Session\Serialize\HandlerInterface;
 
 if (PHP_VERSION_ID > 80200 && (new \ReflectionMethod('Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage','save'))->hasReturnType()) {
-    // alias to class for Symfony 7 on PHP 8.2+ using native types like `save(): void`
+    // alias to class for Symfony 7 on PHP 8.2+ and Symfony 8 on PHP 8.4+ using native types like `save(): void`
     class_alias(__NAMESPACE__ . '\\VirtualSessionStorageForSymfony7', __NAMESPACE__ . '\\VirtualSessionStorage');
 } elseif (PHP_VERSION_ID > 80000 && (new \ReflectionMethod('Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage','start'))->hasReturnType()) {
     // alias to class for Symfony 6 on PHP 8+ using native types like `start(): bool`
