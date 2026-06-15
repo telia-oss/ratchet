@@ -22,7 +22,7 @@ class PhpBinaryHandler implements HandlerInterface {
             $offset += 1;
             $varname = substr($raw, $offset, $num);
             $offset += $num;
-            $data    = unserialize(substr($raw, $offset));
+            $data    = unserialize(substr($raw, $offset), ['allowed_classes' => false]);
 
             $returnData[$varname] = $data;
             $offset += strlen(serialize($data));

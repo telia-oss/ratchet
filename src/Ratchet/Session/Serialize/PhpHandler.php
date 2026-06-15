@@ -68,7 +68,7 @@ class PhpHandler implements HandlerInterface {
             }
 
             $serializedData = substr($raw, $offset, $dataOffset - $offset);
-            $data = unserialize($serializedData);
+            $data = unserialize($serializedData, ['allowed_classes' => false]);
 
             if ($data === false && $serializedData !== 'b:0;') {
                 throw new \UnexpectedValueException("Unable to unserialize data for variable '$varname'");
