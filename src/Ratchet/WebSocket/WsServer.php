@@ -14,6 +14,7 @@ use Ratchet\RFC6455\Messaging\CloseFrameChecker;
 use Ratchet\RFC6455\Handshake\ServerNegotiator;
 use Ratchet\RFC6455\Handshake\RequestVerifier;
 use React\EventLoop\LoopInterface;
+use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Message;
 
 /**
@@ -86,7 +87,13 @@ class WsServer implements HttpServerInterface {
         $this->connections = new \SplObjectStorage;
 
         $this->closeFrameChecker   = new CloseFrameChecker;
-        $this->handshakeNegotiator = new ServerNegotiator(new RequestVerifier);
+
+        if (self::isRFC6455v03()) {
+            $this->handshakeNegotiator = new ServerNegotiator(new RequestVerifier);
+        } else {
+            $this->handshakeNegotiator = new ServerNegotiator(new RequestVerifier, new HttpFactory);
+        }
+
         $this->handshakeNegotiator->setStrictSubProtocolCheck(true);
 
         if ($component instanceof WsServerInterface) {
@@ -101,10 +108,16 @@ class WsServer implements HttpServerInterface {
         };
     }
 
+    private static function isRFC6455v03() {
+        $reflection = new \ReflectionClass('Ratchet\RFC6455\Handshake\ServerNegotiator');
+        return $reflection->getMethod('__construct')->getNumberOfRequiredParameters() === 1;
+    }
+
     /**
      * {@inheritdoc}
      */
-    public function onOpen(ConnectionInterface $conn, RequestInterface $request = null) {
+    #[HackSupportForPHP8] public function onOpen(ConnectionInterface $conn, ?RequestInterface $request = null) { /*
+    public function onOpen(ConnectionInterface $conn, RequestInterface $request = null) { /**/
         if (null === $request) {
             throw new \UnexpectedValueException('$request can not be null');
         }
@@ -137,7 +150,7 @@ class WsServer implements HttpServerInterface {
             $this->ueFlowFactory
         );
 
-        $this->connections->attach($conn, new ConnContext($wsConn, $streamer));
+        $this->connections->offsetSet($conn, new ConnContext($wsConn, $streamer));
 
         return $this->delegate->onOpen($wsConn);
     }
@@ -157,9 +170,9 @@ class WsServer implements HttpServerInterface {
      * {@inheritdoc}
      */
     public function onClose(ConnectionInterface $conn) {
-        if ($this->connections->contains($conn)) {
+        if ($this->connections->offsetExists($conn)) {
             $context = $this->connections[$conn];
-            $this->connections->detach($conn);
+            $this->connections->offsetUnset($conn);
 
             $this->delegate->onClose($context->connection);
         }
@@ -169,7 +182,7 @@ class WsServer implements HttpServerInterface {
      * {@inheritdoc}
      */
     public function onError(ConnectionInterface $conn, \Exception $e) {
-        if ($this->connections->contains($conn)) {
+        if ($this->connections->offsetExists($conn)) {
             $this->delegate->onError($this->connections[$conn]->connection, $e);
         } else {
             $conn->close();
@@ -202,7 +215,7 @@ class WsServer implements HttpServerInterface {
 
         $this->pongReceiver = function(FrameInterface $frame, $wsConn) use ($pingedConnections, &$lastPing) {
             if ($frame->getPayload() === $lastPing->getPayload()) {
-                $pingedConnections->detach($wsConn);
+                $pingedConnections->offsetUnset($wsConn);
             }
         };
 
@@ -218,7 +231,7 @@ class WsServer implements HttpServerInterface {
                 $wsConn  = $this->connections[$conn]->connection;
 
                 $wsConn->send($lastPing);
-                $pingedConnections->attach($wsConn);
+                $pingedConnections->offsetSet($wsConn);
             }
         });
    }

@@ -1,10 +1,12 @@
 <?php
 namespace Ratchet\Wamp;
 
+use PHPUnit\Framework\TestCase;
+
 /**
  * @covers Ratchet\Wamp\TopicManager
  */
-class TopicManagerTest extends \PHPUnit_Framework_TestCase {
+class TopicManagerTest extends TestCase {
     private $mock;
 
     /**
@@ -17,9 +19,12 @@ class TopicManagerTest extends \PHPUnit_Framework_TestCase {
      */
     private $conn;
 
-    public function setUp() {
-        $this->conn = $this->getMock('\Ratchet\ConnectionInterface');
-        $this->mock = $this->getMock('\Ratchet\Wamp\WampServerInterface');
+    /**
+     * @before
+     */
+    public function setUpManager() {
+        $this->conn = $this->getMockBuilder('Ratchet\Mock\Connection')->getMock();
+        $this->mock = $this->getMockBuilder('Ratchet\Wamp\WampServerInterface')->getMock();
         $this->mngr = new TopicManager($this->mock);
 
         $this->conn->WAMP = new \StdClass;
@@ -29,7 +34,9 @@ class TopicManagerTest extends \PHPUnit_Framework_TestCase {
     public function testGetTopicReturnsTopicObject() {
         $class  = new \ReflectionClass('Ratchet\Wamp\TopicManager');
         $method = $class->getMethod('getTopic');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         $topic = $method->invokeArgs($this->mngr, array('The Topic'));
 
@@ -41,7 +48,9 @@ class TopicManagerTest extends \PHPUnit_Framework_TestCase {
 
         $class  = new \ReflectionClass('Ratchet\Wamp\TopicManager');
         $method = $class->getMethod('getTopic');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         $topic = $method->invokeArgs($this->mngr, array($name));
 
@@ -51,7 +60,9 @@ class TopicManagerTest extends \PHPUnit_Framework_TestCase {
     public function testGetTopicReturnsSameObject() {
         $class  = new \ReflectionClass('Ratchet\Wamp\TopicManager');
         $method = $class->getMethod('getTopic');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         $topic = $method->invokeArgs($this->mngr, array('No copy'));
         $again = $method->invokeArgs($this->mngr, array('No copy'));
@@ -90,13 +101,15 @@ class TopicManagerTest extends \PHPUnit_Framework_TestCase {
 
         $class  = new \ReflectionClass('Ratchet\Wamp\TopicManager');
         $method = $class->getMethod('getTopic');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         $topic = $method->invokeArgs($this->mngr, array($name));
 
         $this->mngr->onSubscribe($this->conn, $name);
 
-        $this->assertTrue($this->conn->WAMP->subscriptions->contains($topic));
+        $this->assertTrue($this->conn->WAMP->subscriptions->offsetExists($topic));
     }
 
     public function testDoubleSubscriptionFiresOnce() {
@@ -130,14 +143,16 @@ class TopicManagerTest extends \PHPUnit_Framework_TestCase {
 
         $class  = new \ReflectionClass('Ratchet\Wamp\TopicManager');
         $method = $class->getMethod('getTopic');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         $topic = $method->invokeArgs($this->mngr, array($name));
 
         $this->mngr->onSubscribe($this->conn, $name);
         $this->mngr->onUnsubscribe($this->conn, $name);
 
-        $this->assertFalse($this->conn->WAMP->subscriptions->contains($topic));
+        $this->assertFalse($this->conn->WAMP->subscriptions->offsetExists($topic));
     }
 
     public function testOnPublishBubbles() {
@@ -162,10 +177,14 @@ class TopicManagerTest extends \PHPUnit_Framework_TestCase {
     protected function topicProvider($name) {
         $class  = new \ReflectionClass('Ratchet\Wamp\TopicManager');
         $method = $class->getMethod('getTopic');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         $attribute = $class->getProperty('topicLookup');
-        $attribute->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $attribute->setAccessible(true);
+        }
 
         $topic = $method->invokeArgs($this->mngr, array($name));
 
@@ -212,12 +231,18 @@ class TopicManagerTest extends \PHPUnit_Framework_TestCase {
     }
 
     public function testGetSubProtocolsReturnsArray() {
-        $this->assertInternalType('array', $this->mngr->getSubProtocols());
+        if (method_exists($this, 'assertIsArray')) {
+            // PHPUnit 7+
+            $this->assertIsArray($this->mngr->getSubProtocols());
+        } else {
+            // legacy PHPUnit
+            $this->assertInternalType('array', $this->mngr->getSubProtocols());
+        }
     }
 
     public function testGetSubProtocolsBubbles() {
         $subs = array('hello', 'world');
-        $app  = $this->getMock('Ratchet\Wamp\Stub\WsWampServerInterface');
+        $app  = $this->getMockBuilder('Ratchet\Wamp\Stub\WsWampServerInterface')->getMock();
         $app->expects($this->once())->method('getSubProtocols')->will($this->returnValue($subs));
         $mngr = new TopicManager($app);
 
